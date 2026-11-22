@@ -1,0 +1,18 @@
+{
+  "python.defaultInterpreterPath": "C:/APP/SmartLab-Reservation/venv/Scripts/python.exe",
+  "python.analysis.extraPaths": ["${workspaceFolder}/backend"],
+  "cmake.sourceDirectory": "${workspaceFolder}/client",
+  "cmake.configureOnOpen": false,
+  "C_Cpp.default.compilerPath": "C:/Qt/Tools/mingw1310_64/bin/g++.exe",
+  "C_Cpp.default.cppStandard": "c++17",
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/client/src",
+    "C:/Qt/6.11.1/mingw_64/include",
+    "C:/Qt/6.11.1/mingw_64/include/QtCore",
+    "C:/Qt/6.11.1/mingw_64/include/QtGui",
+    "C:/Qt/6.11.1/mingw_64/include/QtNetwork",
+    "C:/Qt/6.11.1/mingw_64/include/QtQml",
+    "C:/Qt/6.11.1/mingw_64/include/QtQuickControls2"
+  ],
+  "qt-qml.qmlls.customExePath": "C:/Qt/6.11.1/mingw_64/bin/qmlls.exe"
+}

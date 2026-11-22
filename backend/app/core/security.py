@@ -1,97 +1,117 @@
-"""安全模块（core/security.py）：PBKDF2 密码散列、JWT 签发校验、RBAC 鉴权依赖"""
+"""PBKDF2, rolling JWT sessions and role dependencies."""
+
+import hashlib
 import hmac
 import secrets
-from datetime import datetime, timedelta, timezone
+import time
 
 import jwt
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import case, update
 from sqlalchemy.orm import Session
 
-from app.core.config import (
-    JWT_ALGORITHM,
-    JWT_EXPIRE_SECONDS,
-    JWT_SECRET,
-    PBKDF2_ITERATIONS,
-    SALT_BYTES,
-)
+from app.core.config import JWT_ALGORITHM, JWT_EXPIRE_SECONDS, JWT_SECRET, PBKDF2_ITERATIONS, SALT_BYTES
 from app.core.database import get_db
 from app.core.exceptions import forbidden, unauthorized
-from app.models.entities import User
+from app.models.entities import AuthSession, User
+from app.repos.user_repo import record_operation
 
 _bearer = HTTPBearer(auto_error=False)
-
+TOKEN_HEADER = "X-SmartLab-Token"
 ROLE_NAMES = {"student": "学生", "teacher": "教师", "admin": "管理员"}
 ADMIN = "admin"
 TEACHER = "teacher"
 STUDENT = "student"
 
 
-# ---------- 密码散列（M01 3.5：16 字节盐，PBKDF2-HMAC-SHA256，100000 次，存 salt+hash 十六进制串） ----------
 def hash_password(password: str) -> str:
-    salt = secrets.token_hex(SALT_BYTES)  # 16 字节随机盐
-    digest = hmac.new(
-        salt.encode(), password.encode("utf-8"), "pbkdf2-hmac-sha256".replace("pbkdf2-hmac-sha256", ""),  # 占位防误用
-    ) if False else None
-    import hashlib
-
-    dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode(), PBKDF2_ITERATIONS)
-    return salt + dk.hex()
+    salt = secrets.token_hex(SALT_BYTES)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode("ascii"), PBKDF2_ITERATIONS)
+    return salt + digest.hex()
 
 
 def verify_password(password: str, stored: str) -> bool:
-    import hashlib
-
-    if not stored or len(stored) <= SALT_BYTES * 2:
+    if len(stored) != SALT_BYTES * 2 + 64:
         return False
-    salt, expect_hex = stored[: SALT_BYTES * 2], stored[SALT_BYTES * 2:]
-    dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode(), PBKDF2_ITERATIONS)
-    return hmac.compare_digest(dk.hex(), expect_hex)  # 恒时比较，防时序攻击
+    salt, expected = stored[:SALT_BYTES * 2], stored[SALT_BYTES * 2:]
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode("ascii"), PBKDF2_ITERATIONS)
+    return hmac.compare_digest(digest.hex(), expected)
 
 
-# ---------- JWT（HS256，payload={user_id, role, exp}，30 分钟） ----------
-def create_token(user_id: int, role: str) -> str:
-    now = datetime.now(timezone.utc)
-    payload = {
-        "user_id": user_id,
-        "role": role,
-        "exp": now + timedelta(seconds=JWT_EXPIRE_SECONDS),
-        "iat": now,
-    }
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+def create_token(user_id: int, role: str, sid: str, now: int | None = None) -> str:
+    now = int(time.time()) if now is None else now
+    return jwt.encode(
+        {"user_id": user_id, "role": role, "sid": sid, "iat": now, "exp": now + JWT_EXPIRE_SECONDS},
+        JWT_SECRET,
+        algorithm=JWT_ALGORITHM,
+    )
 
 
 def decode_token(token: str) -> dict:
     try:
-        return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    except jwt.ExpiredSignatureError:
-        raise unauthorized("登录已过期，请重新登录")
-    except jwt.InvalidTokenError:
+        payload = jwt.decode(
+            token, JWT_SECRET, algorithms=[JWT_ALGORITHM],
+            options={"require": ["exp", "iat", "user_id", "role", "sid"]},
+        )
+    except jwt.ExpiredSignatureError as error:
+        raise unauthorized("登录已过期，请重新登录") from error
+    except jwt.InvalidTokenError as error:
+        raise unauthorized("无效的登录凭证") from error
+    if type(payload["user_id"]) is not int or not isinstance(payload["sid"], str) or len(payload["sid"]) != 43:
         raise unauthorized("无效的登录凭证")
+    return payload
 
 
-# ---------- 鉴权依赖（FR-102-2：所有业务接口登录 + 角色校验） ----------
 def get_current_user(
+    request: Request,
     cred: HTTPAuthorizationCredentials | None = Depends(_bearer),
     db: Session = Depends(get_db),
 ) -> User:
-    if cred is None or not cred.credentials:
+    if cred is None:
         raise unauthorized()
     payload = decode_token(cred.credentials)
-    user = db.get(User, payload.get("user_id"))
+    now = int(time.time())
+    user = db.get(User, payload["user_id"])
     if user is None:
-        raise unauthorized("账号不存在")
-    if user.status == "禁用":
+        raise unauthorized("登录已失效，请重新登录")
+    if user.status != "启用":
         raise forbidden("账号已被禁用，请联系管理员")
+
+    update_result = db.execute(
+        update(AuthSession)
+        .where(
+            AuthSession.sid == payload["sid"],
+            AuthSession.user_id == user.id,
+            AuthSession.last_activity_at > now - JWT_EXPIRE_SECONDS,
+        )
+        .values(last_activity_at=case(
+            (AuthSession.last_activity_at < now, now), else_=AuthSession.last_activity_at,
+        ))
+    )
+    if update_result.rowcount != 1:
+        raise unauthorized("登录已失效，请重新登录")
+    db.commit()
+    # Permission checks use the current account row rather than the role in the JWT.
+    db.refresh(user)
+    if user.status != "启用":
+        raise forbidden("账号已被禁用，请联系管理员")
+    db.commit()
+
+    request.state.session_id = payload["sid"]
+    request.state.next_token = create_token(user.id, user.role, payload["sid"], now)
     return user
 
 
 def require_roles(*roles: str):
-    """角色校验依赖工厂（RBAC，后端统一校验）"""
-
-    def dependency(user: User = Depends(get_current_user)) -> User:
+    def dependency(
+        user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+    ) -> User:
         if user.role not in roles:
-            raise forbidden("当前角色无权执行该操作")
+            record_operation(db, "permission_denied", ",".join(roles), int(time.time()), actor_id=user.id)
+            db.commit()
+            raise forbidden()
         return user
 
     return dependency
@@ -99,6 +119,6 @@ def require_roles(*roles: str):
 
 require_admin = require_roles(ADMIN)
 
-# ---------- 冻结校验（BR-09：违约 3 次冻结 30 天） ----------
-def is_frozen(user: User, now: datetime) -> bool:
+
+def is_frozen(user: User, now: int) -> bool:
     return user.frozen_until is not None and user.frozen_until > now

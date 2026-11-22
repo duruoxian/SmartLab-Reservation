@@ -1,0 +1,13 @@
+# Generated Python and SQLite data
+__pycache__/
+.pytest_cache/
+pytest-cache-files-*/
+.venv/
+backend/data/
+
+# Local builds and Qt Creator state
+/build/
+client/build*/
+CMakeLists.txt.user*
+.env
+~$*

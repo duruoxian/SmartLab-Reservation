@@ -1,0 +1,7 @@
+fastapi==0.165.0; python_version >= "3.11"
+fastapi>=0.121,<1; python_version == "3.10"
+uvicorn==0.54.0
+SQLAlchemy==2.1.9; python_version >= "3.11"
+SQLAlchemy>=2.0.44,<2.1; python_version == "3.10"
+PyJWT==2.15.1
+PyMySQL[rsa]==1.2.4
