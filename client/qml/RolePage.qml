@@ -17,7 +17,7 @@ ColumnLayout {
         TextField {
             id: search
             objectName: "roleSearch"
-            Layout.fillWidth: true
+            Layout.preferredWidth: 360
             Accessible.name: "搜索账号或姓名"
             placeholderText: "搜索学号、工号或姓名"
             maximumLength: 60
@@ -35,6 +35,7 @@ ColumnLayout {
             enabled: !viewModel.busy
             onClicked: search.submitSearch()
         }
+        Item { Layout.fillWidth: true }
     }
 
     Rectangle {
@@ -44,79 +45,147 @@ ColumnLayout {
         radius: 9
         border.color: Theme.surfaceBorder
 
-        ListView {
-            id: users
+        ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 8
-            clip: true
-            model: viewModel.accounts
-            spacing: 3
-            ScrollBar.vertical: ScrollBar {}
+            anchors.margins: 10
+            spacing: 0
 
-            delegate: ItemDelegate {
-                id: row
-                required property var modelData
-                width: users.width - 9
-                padding: 9
-                contentItem: RowLayout {
-                    spacing: 10
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.leftMargin: 10
+                Layout.rightMargin: 10
+                Layout.topMargin: 4
+                Layout.bottomMargin: 8
+                spacing: 10
 
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Label {
+                Label {
+                    Layout.fillWidth: true
+                    text: "姓名 / 账号状态"
+                    textFormat: Text.PlainText
+                    color: Theme.textFaint
+                    font.pixelSize: 12
+                    font.bold: true
+                }
+                Label {
+                    Layout.preferredWidth: 130
+                    text: "角色"
+                    textFormat: Text.PlainText
+                    color: Theme.textFaint
+                    font.pixelSize: 12
+                    font.bold: true
+                }
+                Label {
+                    Layout.preferredWidth: 96
+                    text: "操作"
+                    textFormat: Text.PlainText
+                    color: Theme.textFaint
+                    font.pixelSize: 12
+                    font.bold: true
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+                color: Theme.surfaceBorder
+                opacity: 0.6
+            }
+
+            ListView {
+                id: users
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                model: viewModel.accounts
+                spacing: 2
+                ScrollBar.vertical: ScrollBar {}
+
+                delegate: ItemDelegate {
+                    id: row
+                    required property var modelData
+                    width: users.width
+                    height: 56
+                    padding: 8
+                    contentItem: RowLayout {
+                        spacing: 10
+
+                        ColumnLayout {
                             Layout.fillWidth: true
-                            text: row.modelData.name
-                            textFormat: Text.PlainText
-                            elide: Text.ElideRight
-                            font.bold: true
+                            spacing: 2
+                            Label {
+                                Layout.fillWidth: true
+                                text: row.modelData.name
+                                textFormat: Text.PlainText
+                                elide: Text.ElideRight
+                                font.bold: true
+                                color: Theme.textPrimary
+                            }
+                            RowLayout {
+                                spacing: 6
+                                Label {
+                                    text: row.modelData.user_no
+                                    textFormat: Text.PlainText
+                                    color: Theme.textMuted
+                                    font.pixelSize: 12
+                                }
+                                Rectangle {
+                                    implicitWidth: statusLabel.implicitWidth + 12
+                                    implicitHeight: 18
+                                    radius: 9
+                                    color: row.modelData.status === "启用"
+                                           ? Theme.tint(Theme.successForeground, 0.12)
+                                           : Theme.tint(Theme.dangerForeground, 0.12)
+                                    Label {
+                                        id: statusLabel
+                                        anchors.centerIn: parent
+                                        text: row.modelData.status
+                                        textFormat: Text.PlainText
+                                        color: row.modelData.status === "启用" ? Theme.successForeground : Theme.dangerForeground
+                                        font.pixelSize: 10
+                                    }
+                                }
+                            }
                         }
-                        Label {
-                            Layout.fillWidth: true
-                            text: row.modelData.user_no + "  ·  " + row.modelData.status
-                            textFormat: Text.PlainText
-                            elide: Text.ElideRight
-                            color: Theme.textMuted
+                        ComboBox {
+                            id: role
+                            objectName: "roleChoice" + row.modelData.id
+                            Accessible.name: "用户角色"
+                            Layout.preferredWidth: 130
+                            model: root.roleLabels
+                            currentIndex: root.roleCodes.indexOf(row.modelData.role)
+                            enabled: !viewModel.busy && row.modelData.id !== viewModel.user.id
+                        }
+                        Button {
+                            objectName: "roleSave" + row.modelData.id
+                            Layout.preferredWidth: 96
+                            text: row.modelData.id === viewModel.user.id ? "当前用户" : "保存角色"
+                            enabled: role.enabled && root.roleCodes[role.currentIndex] !== row.modelData.role
+                            onClicked: viewModel.changeRole(row.modelData.id, root.roleCodes[role.currentIndex])
                         }
                     }
-                    ComboBox {
-                        id: role
-                        objectName: "roleChoice" + row.modelData.id
-                        Accessible.name: "用户角色"
-                        model: root.roleLabels
-                        currentIndex: root.roleCodes.indexOf(row.modelData.role)
-                        enabled: !viewModel.busy && row.modelData.id !== viewModel.user.id
-                    }
-                    Button {
-                        objectName: "roleSave" + row.modelData.id
-                        text: row.modelData.id === viewModel.user.id ? "当前用户" : "保存角色"
-                        enabled: role.enabled && root.roleCodes[role.currentIndex] !== row.modelData.role
-                        onClicked: viewModel.changeRole(row.modelData.id, root.roleCodes[role.currentIndex])
+                    background: Rectangle {
+                        radius: 5
+                        color: row.hovered ? Theme.surfaceHover : "transparent"
                     }
                 }
-                background: Rectangle { radius: 5; color: row.hovered ? Theme.surfaceHover : "white" }
             }
-        }
 
-        Label {
-            anchors.centerIn: parent
-            visible: viewModel.accounts.length === 0
-            text: viewModel.busy ? "正在加载账号…" : "没有匹配的账号"
-            color: Theme.textMuted
+            Label {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: 12
+                Layout.bottomMargin: 12
+                visible: viewModel.accounts.length === 0
+                text: viewModel.busy ? "正在加载账号…" : "没有匹配的账号"
+                color: Theme.textMuted
+            }
         }
     }
 
-    RowLayout {
+    PaginationBar {
         Layout.alignment: Qt.AlignRight
-        Button {
-            text: "上一页"
-            enabled: !viewModel.busy && viewModel.page > 1
-            onClicked: viewModel.loadAccounts(root.searchText, viewModel.page - 1)
-        }
-        Label { text: "第 " + viewModel.page + " 页" }
-        Button {
-            text: "下一页"
-            enabled: !viewModel.busy && viewModel.hasMore
-            onClicked: viewModel.loadAccounts(root.searchText, viewModel.page + 1)
-        }
+        page: viewModel.page
+        hasMore: viewModel.hasMore
+        busy: viewModel.busy
+        onPageRequested: function (page) { viewModel.loadAccounts(root.searchText, page) }
     }
 }

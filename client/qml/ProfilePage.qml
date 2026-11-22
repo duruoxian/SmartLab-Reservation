@@ -51,6 +51,7 @@ ScrollView {
 
             GridLayout {
                 Layout.fillWidth: true
+                Layout.maximumWidth: 640
                 columns: 2
                 columnSpacing: 12
                 FormField { id: college; objectName: "profileCollege"; label: "学院"; maximumLength: 60 }
@@ -79,6 +80,7 @@ ScrollView {
             }
             GridLayout {
                 Layout.fillWidth: true
+                Layout.maximumWidth: 640
                 columns: 2
                 columnSpacing: 12
                 FormField { id: newPassword; objectName: "profileNewPassword"; label: "新密码"; maximumLength: 32; echoMode: TextInput.Password }

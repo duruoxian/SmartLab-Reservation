@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import SmartLab.ui
 
-// 白底圆角卡片容器：可选标题 + 任意内容。
+// 白底圆角卡片容器：标题带主色强调条，内容任意。
 Rectangle {
     id: card
 
@@ -21,14 +21,24 @@ Rectangle {
         anchors.margins: 20
         spacing: 12
 
-        Label {
+        RowLayout {
             Layout.fillWidth: true
             visible: card.title.length > 0
-            text: card.title
-            textFormat: Text.PlainText
-            color: Theme.textPrimary
-            font.pixelSize: 15
-            font.bold: true
+            spacing: 8
+
+            Rectangle {
+                implicitWidth: 3
+                implicitHeight: 14
+                radius: 1.5
+                color: Theme.primary
+            }
+            Label {
+                text: card.title
+                textFormat: Text.PlainText
+                color: Theme.textPrimary
+                font.pixelSize: 15
+                font.bold: true
+            }
         }
 
         ColumnLayout {

@@ -20,6 +20,15 @@ Item {
             radius: 6
             color: tab.checked ? Theme.surface : "transparent"
             border.color: tab.activeFocus ? Theme.primary : "transparent"
+            Rectangle {
+                anchors.bottom: parent.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: parent.width * 0.5
+                height: 3
+                radius: 1.5
+                visible: tab.checked
+                color: Theme.primary
+            }
         }
     }
 
@@ -114,8 +123,10 @@ Item {
             }
 
             ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 29
+                x: 29
+                y: 29
+                width: Math.min(parent.width - 58, 560)
+                height: parent.height - 58
                 spacing: 13
 
                 Label {
