@@ -8,48 +8,27 @@ Item {
 
     component AuthTab: TabButton {
         id: tab
-        implicitHeight: 41
+        implicitHeight: 38
         contentItem: Label {
             text: tab.text
+            textFormat: Text.PlainText
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            color: tab.checked ? Theme.primaryChecked : Theme.textFaint
+            color: tab.checked ? Theme.primary : Theme.textSecondary
+            font.pixelSize: 14
             font.bold: tab.checked
         }
         background: Rectangle {
-            radius: 6
+            radius: 8
             color: tab.checked ? Theme.surface : "transparent"
-            border.color: tab.activeFocus ? Theme.primary : "transparent"
-            Rectangle {
-                anchors.bottom: parent.bottom
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: parent.width * 0.5
-                height: 3
-                radius: 1.5
-                visible: tab.checked
-                color: Theme.primary
-            }
+            border.color: tab.checked ? Theme.surfaceBorder : "transparent"
         }
     }
 
-    component SubmitButton: Button {
-        id: button
+    component SubmitButton: AppButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 44
-        enabled: !viewModel.busy
-        contentItem: Label {
-            text: button.text
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            font.bold: true
-            color: button.enabled ? "white" : Theme.inputPlaceholder
-        }
-        background: Rectangle {
-            radius: Theme.radius
-            color: !button.enabled ? Theme.disabledSurface
-                                   : button.down ? Theme.primaryPressed : Theme.primary
-            border.color: button.activeFocus ? Theme.textPrimary : "transparent"
-        }
+        implicitHeight: 44
+        variant: "filled"
     }
 
     Connections {
@@ -67,45 +46,74 @@ Item {
     RowLayout {
         anchors.fill: parent
         anchors.margins: 36
-        spacing: 0
+        spacing: 24
 
         Rectangle {
             Layout.preferredWidth: root.width > 1000 ? 334 : 256
             Layout.fillHeight: true
+            clip: true
             radius: Theme.radiusPanel
             gradient: Gradient {
                 GradientStop { position: 0; color: Theme.sidebarGradientTop }
                 GradientStop { position: 1; color: Theme.sidebarGradientBottom }
             }
+
             Rectangle {
-                anchors.right: parent.right
-                width: 14
-                height: parent.height
-                gradient: Gradient {
-                    GradientStop { position: 0; color: Theme.sidebarGradientTop }
-                    GradientStop { position: 1; color: Theme.sidebarGradientBottom }
-                }
+                width: 240
+                height: 240
+                radius: 120
+                color: Qt.rgba(1, 1, 1, 0.05)
+                x: -70
+                y: parent.height - 150
             }
+            Rectangle {
+                width: 150
+                height: 150
+                radius: 75
+                color: Qt.rgba(1, 1, 1, 0.06)
+                x: 190
+                y: -50
+            }
+
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 35
-                spacing: 15
+                spacing: 14
                 Item { Layout.fillHeight: true }
-                Label { text: "智约"; color: "white"; font.pixelSize: 56; font.bold: true }
+
+                Label { text: "智约"; color: "white"; font.pixelSize: 54; font.bold: true }
                 Label {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     text: "实验室设备\n预约管理系统"
                     color: Theme.sidebarBrand
-                    font.pixelSize: 23
+                    font.pixelSize: 22
                 }
                 Label {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     text: "面向学生、教师和实验室管理员"
                     color: Theme.sidebarMuted
-                    font.pixelSize: 14
+                    font.pixelSize: 13
                 }
+
+                Item { Layout.preferredHeight: 8 }
+
+                ColumnLayout {
+                    spacing: 7
+
+                    RowLayout {
+                        spacing: 8
+                        Label { text: "✓"; color: Theme.sidebarBrand; font.bold: true }
+                        Label { text: "预约 · 审批 · 归还全流程线上化"; color: Theme.sidebarMuted; font.pixelSize: 12 }
+                    }
+                    RowLayout {
+                        spacing: 8
+                        Label { text: "✓"; color: Theme.sidebarBrand; font.bold: true }
+                        Label { text: "违约记录与统计报表"; color: Theme.sidebarMuted; font.pixelSize: 12 }
+                    }
+                }
+
                 Item { Layout.fillHeight: true }
             }
         }
@@ -115,12 +123,7 @@ Item {
             Layout.fillHeight: true
             color: Theme.surface
             radius: Theme.radiusPanel
-            Rectangle {
-                anchors.left: parent.left
-                width: 14
-                height: parent.height
-                color: parent.color
-            }
+            border.color: Theme.surfaceBorder
 
             ColumnLayout {
                 x: 29
@@ -132,7 +135,7 @@ Item {
                 Label {
                     text: ["登录账号", "注册账号", "找回密码"][tabs.currentIndex]
                     color: Theme.textPrimary
-                    font.pixelSize: 28
+                    font.pixelSize: 27
                     font.bold: true
                 }
 
@@ -143,7 +146,7 @@ Item {
                     enabled: !viewModel.busy
                     padding: 4
                     spacing: 4
-                    background: Rectangle { radius: 8; color: Theme.windowBackground }
+                    background: Rectangle { radius: 10; color: Theme.surfaceSunken }
                     AuthTab { text: "登录" }
                     AuthTab { text: "注册" }
                     AuthTab { text: "找回密码" }
@@ -154,13 +157,35 @@ Item {
                     }
                 }
 
-                Label {
+                Rectangle {
                     Layout.fillWidth: true
                     visible: viewModel.message.length > 0
-                    text: viewModel.message
-                    textFormat: Text.PlainText
-                    wrapMode: Text.Wrap
-                    color: viewModel.error ? Theme.dangerForeground : Theme.successForeground
+                    implicitHeight: authMessage.implicitHeight + 16
+                    radius: 8
+                    color: viewModel.error ? Theme.dangerBackground : Theme.successBackground
+
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        implicitWidth: 4
+                        implicitHeight: parent.height - 14
+                        radius: 2
+                        color: viewModel.error ? Theme.dangerForeground : Theme.successForeground
+                    }
+
+                    Label {
+                        id: authMessage
+                        anchors.fill: parent
+                        anchors.leftMargin: 18
+                        anchors.rightMargin: 10
+                        text: viewModel.message
+                        textFormat: Text.PlainText
+                        wrapMode: Text.Wrap
+                        verticalAlignment: Text.AlignVCenter
+                        color: viewModel.error ? Theme.dangerForeground : Theme.successForeground
+                        font.pixelSize: 13
+                    }
                 }
 
                 ScrollView {
@@ -232,13 +257,13 @@ Item {
                 FormField { id: registerPhone; objectName: "registerPhone"; label: "预留手机号"; maximumLength: 11 }
                 ColumnLayout {
                     Layout.fillWidth: true
-                    Label { text: "角色"; color: Theme.textSecondary }
-                    ComboBox {
+                    spacing: 5
+                    Label { text: "角色"; color: Theme.textSecondary; font.pixelSize: 13 }
+                    AppComboBox {
                         id: roleChoice
                         objectName: "registerRole"
                         Accessible.name: "注册角色"
                         Layout.fillWidth: true
-                        Layout.preferredHeight: Theme.fieldHeight
                         model: viewModel.roles
                         textRole: "name"
                         valueRole: "code"
@@ -254,9 +279,11 @@ Item {
                 }
                 FormField { id: registerConfirm; objectName: "registerConfirm"; label: "确认密码"; maximumLength: 32; echoMode: TextInput.Password }
             }
-            Button {
-                text: "加载可注册角色"
+            AppButton {
+                variant: "text"
                 visible: viewModel.roles.length === 0 && !viewModel.busy
+                text: "加载可注册角色"
+                Layout.alignment: Qt.AlignHCenter
                 onClicked: viewModel.loadRoles()
             }
             SubmitButton {
@@ -276,7 +303,7 @@ Item {
         id: resetForm
         ColumnLayout {
             spacing: 12
-            Label { text: "使用注册时保存的一次性恢复码。"; color: Theme.textMuted }
+            Label { text: "使用注册时保存的一次性恢复码。"; color: Theme.textMuted; font.pixelSize: 13 }
             GridLayout {
                 columns: 2
                 Layout.fillWidth: true

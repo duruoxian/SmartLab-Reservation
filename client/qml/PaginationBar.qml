@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import SmartLab.ui
 
-// 通用分页条：绑定 page / hasMore / busy，响应 pageRequested(page) 换页。
+// 统一分页条：绑定 page / hasMore / busy，响应 pageRequested(page) 换页。
 RowLayout {
     id: bar
 
@@ -15,7 +15,9 @@ RowLayout {
     Layout.alignment: Qt.AlignRight
     spacing: 8
 
-    Button {
+    AppButton {
+        variant: "text"
+        compact: true
         text: "上一页"
         enabled: !bar.busy && bar.page > 1
         onClicked: bar.pageRequested(bar.page - 1)
@@ -24,8 +26,11 @@ RowLayout {
         text: "第 " + bar.page + " 页"
         textFormat: Text.PlainText
         color: Theme.textSecondary
+        font.pixelSize: 13
     }
-    Button {
+    AppButton {
+        variant: "text"
+        compact: true
         text: "下一页"
         enabled: !bar.busy && bar.hasMore
         onClicked: bar.pageRequested(bar.page + 1)

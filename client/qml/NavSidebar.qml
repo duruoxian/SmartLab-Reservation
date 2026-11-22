@@ -3,11 +3,12 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import SmartLab.ui
 
-// 工作区左侧导航：按角色过滤页面注册表，未接入模块显示"规划"角标。
+// 工作区左侧导航：按角色过滤页面注册表并按 section 分组，
+// 未接入模块显示「规划」角标；底部为用户信息与退出。
 Rectangle {
     id: sidebar
 
-    // Main.qml 的页面注册表：[{key,title,page,roles,ready,module,nav}]
+    // Main.qml 的页面注册表：[{key,title,page,roles,ready,module,nav,section}]
     property var registry: []
     property string role: ""
     property string currentPage: "home"
@@ -18,9 +19,22 @@ Rectangle {
     signal navigate(string key)
     signal logoutRequested()
 
-    readonly property var navEntries: registry.filter(function (entry) {
-        return entry.nav !== false && entry.roles.indexOf(role) >= 0
-    })
+    readonly property var navModel: {
+        var rows = []
+        var current = ""
+        for (var i = 0; i < registry.length; ++i) {
+            var entry = registry[i]
+            if (entry.nav === false || entry.roles.indexOf(role) < 0)
+                continue
+            var section = entry.section || "功能"
+            if (section !== current) {
+                rows.push({ header: section })
+                current = section
+            }
+            rows.push(entry)
+        }
+        return rows
+    }
 
     // 深色渐变背景；前景色调白，保证侧栏内文字按钮（退出登录）的对比度
     gradient: Gradient {
@@ -34,8 +48,8 @@ Rectangle {
         required property var modelData
         readonly property bool active: sidebar.currentPage === modelData.key
 
-        Layout.fillWidth: true
-        implicitHeight: 40
+        width: parent.width
+        height: 40
         radius: Theme.radius
         color: active ? Qt.rgba(1, 1, 1, 0.14)
                       : pointer.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
@@ -60,7 +74,7 @@ Rectangle {
 
             Label {
                 Layout.fillWidth: true
-                text: item.modelData.title
+                text: item.modelData.title || ""
                 textFormat: Text.PlainText
                 elide: Text.ElideRight
                 color: item.active ? "white" : Theme.sidebarMuted
@@ -127,11 +141,37 @@ Rectangle {
             }
         }
 
-        Item { Layout.preferredHeight: 16 }
+        Item { Layout.preferredHeight: 14 }
 
         Repeater {
-            model: sidebar.navEntries
-            delegate: SidebarItem {}
+            model: sidebar.navModel
+
+            delegate: Item {
+                id: row
+                required property var modelData
+                readonly property bool isHeader: modelData.header !== undefined
+
+                Layout.fillWidth: true
+                height: row.isHeader ? 28 : 40
+
+                Label {
+                    visible: row.isHeader
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: 4
+                    text: row.isHeader ? row.modelData.header : ""
+                    textFormat: Text.PlainText
+                    color: Theme.sidebarMuted
+                    opacity: 0.8
+                    font.pixelSize: 11
+                    font.bold: true
+                }
+
+                SidebarItem {
+                    visible: !row.isHeader
+                    anchors.fill: parent
+                    modelData: row.modelData
+                }
+            }
         }
 
         Item { Layout.fillHeight: true }
@@ -155,9 +195,12 @@ Rectangle {
                 }
             }
             ColumnLayout {
+                id: userNameColumn
                 Layout.fillWidth: true
                 spacing: 0
+
                 Label {
+                    id: userNameLabel
                     Layout.fillWidth: true
                     text: sidebar.userName
                     textFormat: Text.PlainText
@@ -172,6 +215,14 @@ Rectangle {
                     color: Theme.sidebarMuted
                     font.pixelSize: 11
                 }
+            }
+            HoverHandler {
+                id: userHover
+            }
+            ToolTip {
+                visible: userHover.hovered && userNameLabel.truncated
+                delay: 300
+                text: sidebar.userName
             }
         }
 
@@ -192,12 +243,12 @@ Rectangle {
             background: Rectangle {
                 radius: Theme.radius
                 color: sidebar.busy ? Qt.rgba(1, 1, 1, 0.06)
-                                    : hover.containsMouse ? Qt.rgba(1, 1, 1, 0.18)
-                                                          : Qt.rgba(1, 1, 1, 0.10)
+                                    : logoutHover.containsMouse ? Qt.rgba(1, 1, 1, 0.18)
+                                                                : Qt.rgba(1, 1, 1, 0.10)
                 border.color: Qt.rgba(1, 1, 1, 0.22)
             }
             MouseArea {
-                id: hover
+                id: logoutHover
                 anchors.fill: parent
                 hoverEnabled: true
                 enabled: !sidebar.busy

@@ -30,6 +30,9 @@ qt_add_qml_module(SmartLab
         qml/SectionCard.qml
         qml/ConfirmDialog.qml
         qml/PaginationBar.qml
+        qml/AppButton.qml
+        qml/AppComboBox.qml
+        qml/StatusChip.qml
         qml/HomePage.qml
         qml/FormField.qml
         qml/AuthPage.qml

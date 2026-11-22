@@ -30,6 +30,12 @@ PageShell {
                     spacing: 8
 
                     Label {
+                        text: "今天是 " + Qt.formatDate(new Date(), "yyyy年M月d日 dddd", Qt.locale("zh_CN"))
+                        textFormat: Text.PlainText
+                        color: Theme.textFaint
+                        font.pixelSize: 12
+                    }
+                    Label {
                         text: "你好，" + (viewModel.user.name || "")
                         textFormat: Text.PlainText
                         color: Theme.textPrimary

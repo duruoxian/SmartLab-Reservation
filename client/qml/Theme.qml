@@ -20,6 +20,7 @@ QtObject {
 
     // 主色
     readonly property color primary: "#13766a"
+    readonly property color primaryHover: "#0f6a5f"
     readonly property color primaryPressed: "#0c5a51"
     readonly property color primaryFocus: "#12796e"
     readonly property color primaryChecked: "#12665d"
@@ -37,7 +38,14 @@ QtObject {
     readonly property color successForeground: "#176449"
     readonly property color dangerBackground: "#fff0ed"
     readonly property color dangerForeground: "#9f3c2f"
+    readonly property color warningBackground: "#fdf5e6"
+    readonly property color warningForeground: "#9a6a1f"
     readonly property color inputBorder: "#cad8de"
+    readonly property color inputBorderHover: "#a3c2bc"
+
+    // 表面
+    readonly property color surfaceSunken: "#f3f7f8"
+    readonly property color divider: "#e2eaed"
 
     // 形状与字体
     readonly property int radiusSmall: 5

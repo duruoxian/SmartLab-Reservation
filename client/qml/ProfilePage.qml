@@ -26,23 +26,74 @@ ScrollView {
         width: root.availableWidth
         spacing: 15
 
-        Label {
+        SectionCard {
             Layout.fillWidth: true
-            text: (viewModel.user.name || "") + "  ·  " + (viewModel.user.user_no || "")
-            textFormat: Text.PlainText
-            color: Theme.textPrimary
-            font.pixelSize: 22
-            font.bold: true
-        }
-        Label {
-            Layout.fillWidth: true
-            wrapMode: Text.Wrap
-            text: "预约权限：" + (viewModel.user.booking_frozen ? "已冻结" : "正常")
-                  + "   违约次数：" + (viewModel.user.violation_count || 0)
-                  + (viewModel.user.booking_frozen && viewModel.user.frozen_until
-                     ? "   解冻时间：" + Qt.formatDateTime(new Date(viewModel.user.frozen_until * 1000), "yyyy-MM-dd hh:mm")
-                     : "")
-            color: Theme.textSecondary
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 16
+
+                Rectangle {
+                    implicitWidth: 54
+                    implicitHeight: 54
+                    radius: 27
+                    color: Theme.tint(Theme.primary, 0.12)
+                    border.color: Theme.tint(Theme.primary, 0.26)
+                    Label {
+                        anchors.centerIn: parent
+                        text: (viewModel.user.name || "?").charAt(0)
+                        textFormat: Text.PlainText
+                        color: Theme.primary
+                        font.pixelSize: 21
+                        font.bold: true
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    RowLayout {
+                        spacing: 10
+                        Label {
+                            text: viewModel.user.name || "未登录"
+                            textFormat: Text.PlainText
+                            color: Theme.textPrimary
+                            font.pixelSize: 18
+                            font.bold: true
+                        }
+                        Label {
+                            text: viewModel.user.user_no || ""
+                            textFormat: Text.PlainText
+                            visible: viewModel.loggedIn
+                            color: Theme.textMuted
+                            font.pixelSize: 13
+                        }
+                    }
+
+                    RowLayout {
+                        spacing: 8
+
+                        StatusChip {
+                            text: viewModel.user.booking_frozen ? "预约权限已冻结" : "预约权限正常"
+                            tone: viewModel.user.booking_frozen ? "danger" : "success"
+                        }
+                        StatusChip {
+                            text: "违约 " + (viewModel.user.violation_count || 0) + " 次"
+                            tone: (viewModel.user.violation_count || 0) > 0 ? "warning" : "neutral"
+                        }
+                        Label {
+                            visible: viewModel.user.booking_frozen && viewModel.user.frozen_until
+                            text: "解冻时间：" + Qt.formatDateTime(new Date(viewModel.user.frozen_until * 1000), "yyyy-MM-dd hh:mm")
+                            textFormat: Text.PlainText
+                            color: Theme.textMuted
+                            font.pixelSize: 12
+                        }
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+            }
         }
 
         SectionCard {
@@ -58,10 +109,10 @@ ScrollView {
                 FormField { id: major; objectName: "profileMajor"; label: "专业"; maximumLength: 60 }
                 FormField { id: phone; objectName: "profilePhone"; label: "预留手机号"; maximumLength: 11 }
             }
-            Button {
+            AppButton {
                 objectName: "profileSave"
+                variant: "filled"
                 text: "保存资料"
-                highlighted: true
                 enabled: !viewModel.busy
                 onClicked: viewModel.updateProfile({college: college.text, major: major.text, phone: phone.text})
             }
@@ -87,14 +138,16 @@ ScrollView {
                 FormField { id: confirm; objectName: "profileConfirmPassword"; label: "确认新密码"; maximumLength: 32; echoMode: TextInput.Password }
             }
             RowLayout {
-                Button {
+                spacing: 8
+                AppButton {
                     objectName: "profileChangePassword"
+                    variant: "filled"
                     text: "修改密码"
-                    highlighted: true
                     enabled: !viewModel.busy && currentPassword.text.length > 0
                     onClicked: viewModel.changePassword(currentPassword.text, newPassword.text, confirm.text)
                 }
-                Button {
+                AppButton {
+                    variant: "tonal"
                     text: "生成新的恢复码"
                     enabled: !viewModel.busy && currentPassword.text.length > 0
                     onClicked: viewModel.renewRecoveryCode(currentPassword.text)
