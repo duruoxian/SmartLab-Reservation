@@ -93,7 +93,6 @@ Rectangle {
             id: pointer
             anchors.fill: parent
             hoverEnabled: true
-            enabled: !sidebar.busy
             cursorShape: Qt.PointingHandCursor
             onClicked: sidebar.navigate(item.modelData.key)
         }

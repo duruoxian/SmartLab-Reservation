@@ -260,9 +260,10 @@ ApplicationWindow {
                         Item { Layout.fillWidth: true }
 
                         TextField {
+                            id: globalSearch
                             Layout.preferredWidth: 300
                             Layout.preferredHeight: 36
-                            enabled: false
+                            readOnly: true
                             placeholderText: "搜索设备、预约、消息（随模块开放）"
                             placeholderTextColor: Theme.textFaint
                             selectByMouse: false
@@ -270,7 +271,14 @@ ApplicationWindow {
                             background: Rectangle {
                                 radius: 18
                                 color: Theme.surfaceSunken
-                                border.color: Theme.divider
+                                border.color: globalSearch.activeFocus ? Theme.primaryFocus : Theme.divider
+                                border.width: globalSearch.activeFocus ? 1 : 0
+                            }
+
+                            ToolTip {
+                                visible: globalSearch.activeFocus
+                                delay: 200
+                                text: "全局搜索将随设备、预约与消息模块开放"
                             }
                         }
 
@@ -337,6 +345,7 @@ ApplicationWindow {
 
                 Loader {
                     id: contentLoader
+                    asynchronous: true
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.margins: 24

@@ -1,11 +1,17 @@
 #include "ApiClient.h"
 
 #include <QJsonDocument>
+#include <QNetworkProxy>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <utility>
 
-ApiClient::ApiClient(QUrl baseUrl) : baseUrl_(std::move(baseUrl)) {}
+ApiClient::ApiClient(QUrl baseUrl) : baseUrl_(std::move(baseUrl)) {
+    // API 目标是本机或实验室局域网服务：直连，禁用系统代理。
+    // 否则 QNetworkAccessManager 走系统代理自动探测（WPAD），在配置了
+    // 代理（如 Clash）的机器上首次请求会把 GUI 线程阻塞数十秒。
+    network_.setProxy(QNetworkProxy::NoProxy);
+}
 
 void ApiClient::setToken(const QString &token) {
     token_ = token;
