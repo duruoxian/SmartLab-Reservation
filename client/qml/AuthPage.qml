@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import SmartLab.ui
 
 Item {
     id: root
@@ -12,13 +13,13 @@ Item {
             text: tab.text
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            color: tab.checked ? "#12665d" : "#526b76"
+            color: tab.checked ? Theme.primaryChecked : Theme.textFaint
             font.bold: tab.checked
         }
         background: Rectangle {
             radius: 6
-            color: tab.checked ? "#ffffff" : "transparent"
-            border.color: tab.activeFocus ? "#13766a" : "transparent"
+            color: tab.checked ? Theme.surface : "transparent"
+            border.color: tab.activeFocus ? Theme.primary : "transparent"
         }
     }
 
@@ -32,12 +33,13 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             font.bold: true
-            color: button.enabled ? "#ffffff" : "#6b7f89"
+            color: button.enabled ? "white" : Theme.inputPlaceholder
         }
         background: Rectangle {
-            radius: 7
-            color: !button.enabled ? "#e3eced" : button.down ? "#0c5a51" : "#13766a"
-            border.color: button.activeFocus ? "#173440" : "transparent"
+            radius: Theme.radius
+            color: !button.enabled ? Theme.disabledSurface
+                                   : button.down ? Theme.primaryPressed : Theme.primary
+            border.color: button.activeFocus ? Theme.textPrimary : "transparent"
         }
     }
 
@@ -61,8 +63,8 @@ Item {
         Rectangle {
             Layout.preferredWidth: root.width > 1000 ? 334 : 256
             Layout.fillHeight: true
-            color: "#13363c"
-            radius: 14
+            color: Theme.sidebar
+            radius: Theme.radiusPanel
             Rectangle {
                 anchors.right: parent.right
                 width: 14
@@ -79,14 +81,14 @@ Item {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     text: "实验室设备\n预约管理系统"
-                    color: "#d8eee9"
+                    color: Theme.sidebarBrand
                     font.pixelSize: 23
                 }
                 Label {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     text: "面向学生、教师和实验室管理员"
-                    color: "#b7d8d3"
+                    color: Theme.sidebarMuted
                     font.pixelSize: 14
                 }
                 Item { Layout.fillHeight: true }
@@ -96,8 +98,8 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            color: "#ffffff"
-            radius: 14
+            color: Theme.surface
+            radius: Theme.radiusPanel
             Rectangle {
                 anchors.left: parent.left
                 width: 14
@@ -112,7 +114,7 @@ Item {
 
                 Label {
                     text: ["登录账号", "注册账号", "找回密码"][tabs.currentIndex]
-                    color: "#173440"
+                    color: Theme.textPrimary
                     font.pixelSize: 28
                     font.bold: true
                 }
@@ -124,7 +126,7 @@ Item {
                     enabled: !viewModel.busy
                     padding: 4
                     spacing: 4
-                    background: Rectangle { radius: 8; color: "#edf3f5" }
+                    background: Rectangle { radius: 8; color: Theme.windowBackground }
                     AuthTab { text: "登录" }
                     AuthTab { text: "注册" }
                     AuthTab { text: "找回密码" }
@@ -141,7 +143,7 @@ Item {
                     text: viewModel.message
                     textFormat: Text.PlainText
                     wrapMode: Text.Wrap
-                    color: viewModel.error ? "#9e3b30" : "#176449"
+                    color: viewModel.error ? Theme.dangerForeground : Theme.successForeground
                 }
 
                 ScrollView {
@@ -205,13 +207,13 @@ Item {
                 FormField { id: registerPhone; objectName: "registerPhone"; label: "预留手机号"; maximumLength: 11 }
                 ColumnLayout {
                     Layout.fillWidth: true
-                    Label { text: "角色"; color: "#40535e" }
+                    Label { text: "角色"; color: Theme.textSecondary }
                     ComboBox {
                         id: roleChoice
                         objectName: "registerRole"
                         Accessible.name: "注册角色"
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 43
+                        Layout.preferredHeight: Theme.fieldHeight
                         model: viewModel.roles
                         textRole: "name"
                         valueRole: "code"
@@ -249,7 +251,7 @@ Item {
         id: resetForm
         ColumnLayout {
             spacing: 12
-            Label { text: "使用注册时保存的一次性恢复码。"; color: "#4a626d" }
+            Label { text: "使用注册时保存的一次性恢复码。"; color: Theme.textMuted }
             GridLayout {
                 columns: 2
                 Layout.fillWidth: true

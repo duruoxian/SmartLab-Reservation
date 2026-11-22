@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import SmartLab.ui
 
 ScrollView {
     id: root
@@ -29,7 +30,7 @@ ScrollView {
             Layout.fillWidth: true
             text: (viewModel.user.name || "") + "  ·  " + (viewModel.user.user_no || "")
             textFormat: Text.PlainText
-            color: "#173440"
+            color: Theme.textPrimary
             font.pixelSize: 22
             font.bold: true
         }
@@ -41,7 +42,7 @@ ScrollView {
                   + (viewModel.user.booking_frozen && viewModel.user.frozen_until
                      ? "   解冻时间：" + Qt.formatDateTime(new Date(viewModel.user.frozen_until * 1000), "yyyy-MM-dd hh:mm")
                      : "")
-            color: "#40535e"
+            color: Theme.textSecondary
         }
 
         GroupBox {

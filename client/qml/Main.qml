@@ -1,23 +1,78 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import SmartLab.ui
 
+// 工作区导航壳：页面注册表驱动，按角色过滤侧栏入口。
+// F01–F10 各页面对应独立 QML 文件；ready=false 的页面显示规划占位。
 ApplicationWindow {
     id: window
+
     width: 1120
     height: 770
     minimumWidth: 860
     minimumHeight: 640
     visible: true
     title: "智约实验室设备预约系统"
-    color: "#edf3f5"
-    font.family: "Microsoft YaHei UI"
-    font.pixelSize: 14
-    palette.highlight: "#13766a"
+    color: Theme.windowBackground
+    font.family: Theme.fontFamily
+    font.pixelSize: Theme.fontBody
+    palette.highlight: Theme.primary
 
-    property string page: "home"
     readonly property bool admin: viewModel.user.role === "admin"
     readonly property var roleNames: ({student: "学生", teacher: "教师", admin: "管理员"})
+
+    // 页面注册表：nav=false 表示不进侧栏（由业务页跳转进入）。
+    // ready=false 表示模块尚未接入，展示规划占位；接入后在文件内实现并置 true。
+    readonly property var pageRegistry: [
+        { key: "home",               title: "首页",       page: "",    roles: ["student", "teacher", "admin"], ready: true },
+        { key: "equipment",          title: "设备浏览",   page: "F03", roles: ["student", "teacher", "admin"], ready: false, module: "M02" },
+        { key: "equipmentDetail",    title: "设备详情",   page: "F04", roles: ["student", "teacher", "admin"], ready: false, module: "M02", nav: false },
+        { key: "reservationCreate",  title: "预约申请",   page: "F05", roles: ["student", "teacher", "admin"], ready: false, module: "M03", nav: false },
+        { key: "myReservations",     title: "我的预约",   page: "F06", roles: ["student", "teacher", "admin"], ready: false, module: "M03" },
+        { key: "notifications",      title: "消息中心",   page: "F08", roles: ["student", "teacher", "admin"], ready: false, module: "M05" },
+        { key: "profile",            title: "个人中心",   page: "F02", roles: ["student", "teacher", "admin"], ready: true },
+        { key: "approval",           title: "审批工作台", page: "F07", roles: ["admin"], ready: false, module: "M04" },
+        { key: "admin",              title: "后台管理",   page: "F09", roles: ["admin"], ready: false, module: "M06" },
+        { key: "stats",              title: "统计报表",   page: "F10", roles: ["admin"], ready: false, module: "M07" },
+        { key: "roles",              title: "角色管理",   page: "",    roles: ["admin"], ready: true },
+    ]
+
+    property string page: "home"
+
+    function pageEntry(key) {
+        for (let i = 0; i < pageRegistry.length; ++i)
+            if (pageRegistry[i].key === key)
+                return pageRegistry[i]
+        return pageRegistry[0]
+    }
+
+    function pageAllowed(key) {
+        return pageRegistry.some(function (entry) {
+            return entry.key === key && entry.roles.indexOf(viewModel.user.role) >= 0
+        })
+    }
+
+    function navigate(key) {
+        viewModel.clearMessage()
+        if (key === "profile")
+            viewModel.refreshProfile()
+        window.page = key
+    }
+
+    readonly property var pageComponents: ({
+        home: homeComponent,
+        equipment: equipmentComponent,
+        equipmentDetail: equipmentDetailComponent,
+        reservationCreate: reservationCreateComponent,
+        myReservations: myReservationsComponent,
+        notifications: notificationsComponent,
+        profile: profileComponent,
+        approval: approvalComponent,
+        admin: adminComponent,
+        stats: statsComponent,
+        roles: rolesComponent,
+    })
 
     Loader {
         anchors.fill: parent
@@ -27,7 +82,7 @@ ApplicationWindow {
     Connections {
         target: viewModel
         function onUserChanged() {
-            if (!viewModel.loggedIn || (window.page === "roles" && !window.admin))
+            if (!viewModel.loggedIn || !window.pageAllowed(window.page))
                 window.page = "home"
         }
         function onRecoveryCodeReady(code) {
@@ -74,76 +129,24 @@ ApplicationWindow {
         }
     }
 
-    Component {
-        id: authPage
-        AuthPage {}
-    }
+    Component { id: authPage; AuthPage {} }
 
     Component {
         id: workspacePage
         RowLayout {
             spacing: 0
 
-            Rectangle {
+            NavSidebar {
                 Layout.preferredWidth: 220
                 Layout.fillHeight: true
-                color: "#13363c"
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 24
-                    spacing: 9
-
-                    Label { text: "智约"; color: "white"; font.pixelSize: 32; font.bold: true }
-                    Label { text: "实验室设备预约系统"; color: "#b7d8d3"; font.pixelSize: 14 }
-                    Item { Layout.preferredHeight: 24 }
-                    Button {
-                        text: "首页"
-                        Layout.fillWidth: true
-                        highlighted: window.page === "home"
-                        enabled: !viewModel.busy
-                        onClicked: {
-                            viewModel.clearMessage()
-                            window.page = "home"
-                        }
-                    }
-                    Button {
-                        text: "个人中心"
-                        objectName: "profileNavigation"
-                        Layout.fillWidth: true
-                        highlighted: window.page === "profile"
-                        enabled: !viewModel.busy
-                        onClicked: {
-                            window.page = "profile"
-                            viewModel.refreshProfile()
-                        }
-                    }
-                    Button {
-                        text: "角色管理"
-                        objectName: "rolesNavigation"
-                        Layout.fillWidth: true
-                        visible: window.admin
-                        highlighted: window.page === "roles"
-                        enabled: !viewModel.busy
-                        onClicked: window.page = "roles"
-                    }
-                    Item { Layout.fillHeight: true }
-                    Label {
-                        text: viewModel.user.name || ""
-                        textFormat: Text.PlainText
-                        color: "white"
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
-                        font.bold: true
-                    }
-                    Label { text: window.roleNames[viewModel.user.role] || ""; color: "#b7d8d3" }
-                    Button {
-                        text: "退出登录"
-                        objectName: "logoutButton"
-                        Layout.fillWidth: true
-                        enabled: !viewModel.busy
-                        onClicked: viewModel.logout()
-                    }
-                }
+                registry: window.pageRegistry
+                role: viewModel.user.role
+                currentPage: window.page
+                userName: viewModel.user.name || ""
+                roleLabel: window.roleNames[viewModel.user.role] || ""
+                busy: viewModel.busy
+                onNavigate: function (key) { window.navigate(key) }
+                onLogoutRequested: viewModel.logout()
             }
 
             ColumnLayout {
@@ -151,97 +154,35 @@ ApplicationWindow {
                 Layout.fillHeight: true
                 spacing: 0
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 59
-                    color: "#ffffff"
-                    Label {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 28
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: window.page === "profile" ? "个人中心"
-                              : window.page === "roles" ? "角色管理"
-                              : window.admin ? "管理工作台" : "设备浏览"
-                        color: "#173440"
-                        font.pixelSize: 19
-                        font.bold: true
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
+                InfoBanner {
                     Layout.leftMargin: 24
                     Layout.rightMargin: 24
-                    Layout.topMargin: visible ? 14 : 0
-                    Layout.preferredHeight: statusText.implicitHeight + 16
+                    Layout.topMargin: 14
                     visible: viewModel.message.length > 0
-                    radius: 7
-                    color: viewModel.error ? "#fff0ed" : "#e4f4ec"
-                    Label {
-                        id: statusText
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        text: viewModel.message
-                        textFormat: Text.PlainText
-                        wrapMode: Text.Wrap
-                        color: viewModel.error ? "#9f3c2f" : "#176449"
-                    }
+                    message: viewModel.message
+                    error: viewModel.error
                 }
 
                 Loader {
+                    id: contentLoader
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.margins: 24
-                    sourceComponent: window.page === "profile" ? profilePage
-                                     : window.page === "roles" ? rolePage : homePage
+                    sourceComponent: window.pageComponents[window.page] || homeComponent
                 }
             }
         }
     }
 
-    Component { id: profilePage; ProfilePage {} }
-    Component { id: rolePage; RolePage {} }
-
-    Component {
-        id: homePage
-        Item {
-            Rectangle {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                height: 182
-                radius: 12
-                color: "#ffffff"
-                border.color: "#d9e5e8"
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 24
-                    spacing: 8
-                    Label {
-                        text: "你好，" + (viewModel.user.name || "")
-                        textFormat: Text.PlainText
-                        color: "#173440"
-                        font.pixelSize: 26
-                        font.bold: true
-                    }
-                    Label {
-                        Layout.fillWidth: true
-                        wrapMode: Text.Wrap
-                        color: "#4a626d"
-                        text: window.admin ? "可以在角色管理中查询账号和调整权限。"
-                                           : "账号已登录。设备列表将在 M02 模块接入。"
-                    }
-                    Button {
-                        text: window.admin ? "打开角色管理" : "查看个人资料"
-                        enabled: !viewModel.busy
-                        onClicked: {
-                            window.page = window.admin ? "roles" : "profile"
-                            if (!window.admin)
-                                viewModel.refreshProfile()
-                        }
-                    }
-                    Item { Layout.fillHeight: true }
-                }
-            }
-        }
-    }
+    Component { id: homeComponent; HomePage { onNavigate: function (key) { window.navigate(key) } } }
+    Component { id: profileComponent; ProfilePage {} }
+    Component { id: rolesComponent; RolePage {} }
+    Component { id: equipmentComponent; EquipmentPage {} }
+    Component { id: equipmentDetailComponent; EquipmentDetailPage {} }
+    Component { id: reservationCreateComponent; ReservationCreatePage {} }
+    Component { id: myReservationsComponent; MyReservationsPage {} }
+    Component { id: approvalComponent; ApprovalPage {} }
+    Component { id: notificationsComponent; NotificationPage {} }
+    Component { id: adminComponent; AdminPage {} }
+    Component { id: statsComponent; StatsPage {} }
 }

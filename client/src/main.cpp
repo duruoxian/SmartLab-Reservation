@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     UserViewModel userViewModel(address);
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("viewModel", &userViewModel);
-    engine.load(QUrl(QStringLiteral("qrc:/qml/Main.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/SmartLab/ui/qml/Main.qml")));
     if (engine.rootObjects().isEmpty())
         return 1;
     return app.exec();

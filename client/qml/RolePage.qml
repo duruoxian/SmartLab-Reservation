@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import SmartLab.ui
 
 ColumnLayout {
     id: root
@@ -39,9 +40,9 @@ ColumnLayout {
     Rectangle {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        color: "#ffffff"
+        color: Theme.surface
         radius: 9
-        border.color: "#d9e5e8"
+        border.color: Theme.surfaceBorder
 
         ListView {
             id: users
@@ -74,7 +75,7 @@ ColumnLayout {
                             text: row.modelData.user_no + "  ·  " + row.modelData.status
                             textFormat: Text.PlainText
                             elide: Text.ElideRight
-                            color: "#4a626d"
+                            color: Theme.textMuted
                         }
                     }
                     ComboBox {
@@ -92,7 +93,7 @@ ColumnLayout {
                         onClicked: viewModel.changeRole(row.modelData.id, root.roleCodes[role.currentIndex])
                     }
                 }
-                background: Rectangle { radius: 5; color: row.hovered ? "#eef5f6" : "white" }
+                background: Rectangle { radius: 5; color: row.hovered ? Theme.surfaceHover : "white" }
             }
         }
 
@@ -100,7 +101,7 @@ ColumnLayout {
             anchors.centerIn: parent
             visible: viewModel.accounts.length === 0
             text: viewModel.busy ? "正在加载账号…" : "没有匹配的账号"
-            color: "#4a626d"
+            color: Theme.textMuted
         }
     }
 

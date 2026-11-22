@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import SmartLab.ui
 
 ColumnLayout {
     id: root
@@ -17,7 +18,7 @@ ColumnLayout {
 
     Label {
         text: root.label
-        color: "#40535e"
+        color: Theme.textSecondary
         font.pixelSize: 14
         textFormat: Text.PlainText
     }
@@ -25,19 +26,19 @@ ColumnLayout {
     TextField {
         id: field
         Layout.fillWidth: true
-        Layout.preferredHeight: 43
+        Layout.preferredHeight: Theme.fieldHeight
         Accessible.name: root.label
         font.pixelSize: 15
-        color: "#162e38"
-        placeholderTextColor: "#6b7f89"
+        color: Theme.inputText
+        placeholderTextColor: Theme.inputPlaceholder
         selectByMouse: true
         padding: 11
         onAccepted: root.accepted()
 
         background: Rectangle {
-            radius: 7
-            color: "#ffffff"
-            border.color: field.activeFocus ? "#12796e" : "#cad8de"
+            radius: Theme.radius
+            color: Theme.surface
+            border.color: field.activeFocus ? Theme.primaryFocus : Theme.inputBorder
             border.width: field.activeFocus ? 2 : 1
         }
     }
