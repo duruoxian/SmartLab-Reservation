@@ -19,6 +19,13 @@ ApplicationWindow {
     font.pixelSize: Theme.fontBody
     palette.highlight: Theme.primary
 
+    // Material 风格主题色：控件（按钮、下拉框、对话框、滚动条）随主题统一着色
+    Material.theme: Material.Light
+    Material.primary: Theme.primary
+    Material.accent: Theme.primary
+    Material.background: Theme.windowBackground
+    Material.foreground: Theme.textPrimary
+
     readonly property bool admin: viewModel.user.role === "admin"
     readonly property var roleNames: ({student: "学生", teacher: "教师", admin: "管理员"})
 

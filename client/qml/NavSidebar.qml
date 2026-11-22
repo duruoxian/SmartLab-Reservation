@@ -22,7 +22,12 @@ Rectangle {
         return entry.nav !== false && entry.roles.indexOf(role) >= 0
     })
 
-    color: Theme.sidebar
+    // 深色渐变背景；前景色调白，保证侧栏内文字按钮（退出登录）的对比度
+    gradient: Gradient {
+        GradientStop { position: 0; color: Theme.sidebarGradientTop }
+        GradientStop { position: 1; color: Theme.sidebarGradientBottom }
+    }
+    Material.foreground: "white"
 
     component SidebarItem: Rectangle {
         id: item
@@ -82,23 +87,47 @@ Rectangle {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 24
-        spacing: 9
+        anchors.margins: 22
+        spacing: 8
 
-        Label {
-            text: "智约"
-            textFormat: Text.PlainText
-            color: "white"
-            font.pixelSize: 32
-            font.bold: true
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+
+            Rectangle {
+                implicitWidth: 36
+                implicitHeight: 36
+                radius: 11
+                color: Qt.rgba(1, 1, 1, 0.14)
+                Label {
+                    anchors.centerIn: parent
+                    text: "智"
+                    textFormat: Text.PlainText
+                    color: "white"
+                    font.pixelSize: 17
+                    font.bold: true
+                }
+            }
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+                Label {
+                    text: "智约"
+                    textFormat: Text.PlainText
+                    color: "white"
+                    font.pixelSize: 20
+                    font.bold: true
+                }
+                Label {
+                    text: "实验室设备预约系统"
+                    textFormat: Text.PlainText
+                    color: Theme.sidebarMuted
+                    font.pixelSize: 11
+                }
+            }
         }
-        Label {
-            text: "实验室设备预约系统"
-            textFormat: Text.PlainText
-            color: Theme.sidebarMuted
-            font.pixelSize: 14
-        }
-        Item { Layout.preferredHeight: 24 }
+
+        Item { Layout.preferredHeight: 16 }
 
         Repeater {
             model: sidebar.navEntries
@@ -107,25 +136,74 @@ Rectangle {
 
         Item { Layout.fillHeight: true }
 
-        Label {
+        RowLayout {
             Layout.fillWidth: true
-            text: sidebar.userName
-            textFormat: Text.PlainText
-            elide: Text.ElideRight
-            color: "white"
-            font.bold: true
+            spacing: 10
+
+            Rectangle {
+                implicitWidth: 38
+                implicitHeight: 38
+                radius: 19
+                color: Qt.rgba(1, 1, 1, 0.16)
+                Label {
+                    anchors.centerIn: parent
+                    text: sidebar.userName.length > 0 ? sidebar.userName.charAt(0) : "?"
+                    textFormat: Text.PlainText
+                    color: "white"
+                    font.pixelSize: 16
+                    font.bold: true
+                }
+            }
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+                Label {
+                    Layout.fillWidth: true
+                    text: sidebar.userName
+                    textFormat: Text.PlainText
+                    elide: Text.ElideRight
+                    color: "white"
+                    font.pixelSize: 13
+                    font.bold: true
+                }
+                Label {
+                    text: sidebar.roleLabel
+                    textFormat: Text.PlainText
+                    color: Theme.sidebarMuted
+                    font.pixelSize: 11
+                }
+            }
         }
-        Label {
-            text: sidebar.roleLabel
-            textFormat: Text.PlainText
-            color: Theme.sidebarMuted
-        }
+
         Button {
             objectName: "logoutButton"
             text: "退出登录"
             Layout.fillWidth: true
+            implicitHeight: 38
             enabled: !sidebar.busy
-            onClicked: sidebar.logoutRequested()
+            contentItem: Label {
+                text: "退出登录"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                textFormat: Text.PlainText
+                color: "white"
+                font.pixelSize: 13
+            }
+            background: Rectangle {
+                radius: Theme.radius
+                color: sidebar.busy ? Qt.rgba(1, 1, 1, 0.06)
+                                    : hover.containsMouse ? Qt.rgba(1, 1, 1, 0.18)
+                                                          : Qt.rgba(1, 1, 1, 0.10)
+                border.color: Qt.rgba(1, 1, 1, 0.22)
+            }
+            MouseArea {
+                id: hover
+                anchors.fill: parent
+                hoverEnabled: true
+                enabled: !sidebar.busy
+                cursorShape: Qt.PointingHandCursor
+                onClicked: sidebar.logoutRequested()
+            }
         }
     }
 }

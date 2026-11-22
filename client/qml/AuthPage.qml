@@ -63,13 +63,19 @@ Item {
         Rectangle {
             Layout.preferredWidth: root.width > 1000 ? 334 : 256
             Layout.fillHeight: true
-            color: Theme.sidebar
             radius: Theme.radiusPanel
+            gradient: Gradient {
+                GradientStop { position: 0; color: Theme.sidebarGradientTop }
+                GradientStop { position: 1; color: Theme.sidebarGradientBottom }
+            }
             Rectangle {
                 anchors.right: parent.right
                 width: 14
                 height: parent.height
-                color: parent.color
+                gradient: Gradient {
+                    GradientStop { position: 0; color: Theme.sidebarGradientTop }
+                    GradientStop { position: 1; color: Theme.sidebarGradientBottom }
+                }
             }
             ColumnLayout {
                 anchors.fill: parent
@@ -158,6 +164,14 @@ Item {
                         width: formScroll.availableWidth
                         sourceComponent: [loginForm, registerForm, resetForm][tabs.currentIndex]
                     }
+                }
+
+                Label {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: "智约 · 软件项目管理课程第 9 组"
+                    textFormat: Text.PlainText
+                    color: Theme.textFaint
+                    font.pixelSize: 11
                 }
             }
         }

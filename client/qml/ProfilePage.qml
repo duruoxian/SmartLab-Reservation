@@ -45,62 +45,57 @@ ScrollView {
             color: Theme.textSecondary
         }
 
-        GroupBox {
+        SectionCard {
             title: "基本资料"
             Layout.fillWidth: true
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: 10
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: 2
-                    columnSpacing: 12
-                    FormField { id: college; objectName: "profileCollege"; label: "学院"; maximumLength: 60 }
-                    FormField { id: major; objectName: "profileMajor"; label: "专业"; maximumLength: 60 }
-                    FormField { id: phone; objectName: "profilePhone"; label: "预留手机号"; maximumLength: 11 }
-                }
-                Button {
-                    objectName: "profileSave"
-                    text: "保存资料"
-                    highlighted: true
-                    enabled: !viewModel.busy
-                    onClicked: viewModel.updateProfile({college: college.text, major: major.text, phone: phone.text})
-                }
+
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: 12
+                FormField { id: college; objectName: "profileCollege"; label: "学院"; maximumLength: 60 }
+                FormField { id: major; objectName: "profileMajor"; label: "专业"; maximumLength: 60 }
+                FormField { id: phone; objectName: "profilePhone"; label: "预留手机号"; maximumLength: 11 }
+            }
+            Button {
+                objectName: "profileSave"
+                text: "保存资料"
+                highlighted: true
+                enabled: !viewModel.busy
+                onClicked: viewModel.updateProfile({college: college.text, major: major.text, phone: phone.text})
             }
         }
 
-        GroupBox {
+        SectionCard {
             title: "账号安全"
             Layout.fillWidth: true
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: 10
-                FormField {
-                    id: currentPassword
-                    objectName: "profileCurrentPassword"
-                    label: "当前密码"
-                    maximumLength: 32
-                    echoMode: TextInput.Password
+
+            FormField {
+                id: currentPassword
+                objectName: "profileCurrentPassword"
+                label: "当前密码"
+                maximumLength: 32
+                echoMode: TextInput.Password
+            }
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: 12
+                FormField { id: newPassword; objectName: "profileNewPassword"; label: "新密码"; maximumLength: 32; echoMode: TextInput.Password }
+                FormField { id: confirm; objectName: "profileConfirmPassword"; label: "确认新密码"; maximumLength: 32; echoMode: TextInput.Password }
+            }
+            RowLayout {
+                Button {
+                    objectName: "profileChangePassword"
+                    text: "修改密码"
+                    highlighted: true
+                    enabled: !viewModel.busy && currentPassword.text.length > 0
+                    onClicked: viewModel.changePassword(currentPassword.text, newPassword.text, confirm.text)
                 }
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: 2
-                    columnSpacing: 12
-                    FormField { id: newPassword; objectName: "profileNewPassword"; label: "新密码"; maximumLength: 32; echoMode: TextInput.Password }
-                    FormField { id: confirm; objectName: "profileConfirmPassword"; label: "确认新密码"; maximumLength: 32; echoMode: TextInput.Password }
-                }
-                RowLayout {
-                    Button {
-                        objectName: "profileChangePassword"
-                        text: "修改密码"
-                        enabled: !viewModel.busy && currentPassword.text.length > 0
-                        onClicked: viewModel.changePassword(currentPassword.text, newPassword.text, confirm.text)
-                    }
-                    Button {
-                        text: "生成新的恢复码"
-                        enabled: !viewModel.busy && currentPassword.text.length > 0
-                        onClicked: viewModel.renewRecoveryCode(currentPassword.text)
-                    }
+                Button {
+                    text: "生成新的恢复码"
+                    enabled: !viewModel.busy && currentPassword.text.length > 0
+                    onClicked: viewModel.renewRecoveryCode(currentPassword.text)
                 }
             }
         }

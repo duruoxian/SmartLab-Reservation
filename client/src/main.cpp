@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     app.setApplicationName(QStringLiteral("SmartLab"));
     app.setApplicationDisplayName(QStringLiteral("智约实验室设备预约系统"));
     app.setApplicationVersion(QStringLiteral("0.1.0"));
-    QQuickStyle::setStyle(QStringLiteral("Fusion"));
+    QQuickStyle::setStyle(QStringLiteral("Material"));
 
     QCommandLineParser parser;
     parser.addHelpOption();

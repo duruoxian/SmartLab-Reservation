@@ -13,6 +13,8 @@ QtObject {
 
     // 侧栏与品牌
     readonly property color sidebar: "#13363c"
+    readonly property color sidebarGradientTop: "#1b4d54"
+    readonly property color sidebarGradientBottom: "#13363c"
     readonly property color sidebarMuted: "#b7d8d3"
     readonly property color sidebarBrand: "#d8eee9"
 

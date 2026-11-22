@@ -65,6 +65,13 @@ ColumnLayout {
         RowLayout { id: actionsRow; spacing: 8 }
     }
 
+    Rectangle {
+        Layout.fillWidth: true
+        Layout.preferredHeight: 1
+        color: Theme.surfaceBorder
+        opacity: 0.55
+    }
+
     ColumnLayout {
         id: body
         Layout.fillWidth: true
